@@ -1,37 +1,17 @@
 ---
-title: "I have the best titles"
+title: "Invasive Species Tracker"
 author: Amanda Klisavage
-subtitle: This change is a test.
+subtitle: An interactive tool for understanding __.
 ---
 
 # Introduction
-My really awesome and complete introduction will go here.  
+Invasive species are organisms that cause ecological or economic harm in environments in which they are not native. As globalization has spread and the world has grown exponentially smaller, invasive species have become one of the greatest challenges facing environmental managers today. Coupled with constant influx of imported goods is the ever-looming spectre of climate change. Biodiversity loss caused by climate change may leave room in an ecosystem in which the invader has no natural predators, causing species hierarchies to shift, and the invasive species to outcompete native species already vulnerable due to climate induced stress. While there are numerous other factors involved in the spread of invasive species, this map seeks to ask the question: **Is the spread of invasive species correlated with an increase in mean temperature?** This project aims to build an interactive tool that allows users to trace the spread of numerous invasive species in order to further understand the factors that allow invasive species to spread.  
 
 # Materials and methods
 
-Narrative and most code will go here.  Describe what you are doing and show how to do it (with code).
+This project pulls species distribution data from R package spocc to create an interactive map in Leaflet and Shiny.
 
-You can do bullets like this:
-
-* The first most important thing
-* The second most important thing
-* The third most important thing
-
-You can do numbers like this:
-
-1. The first most important thing
-2. The second most important thing
-3. The third most important thing
-
-See [http://rmarkdown.rstudio.com/](http://rmarkdown.rstudio.com/) for all the amazing things you can do.
-
-
-Here's my first code chunk.
-```{r}
-1+2
-```
-
-Load any required packages in a code chunk (you may need to install some packages):
+Not all of these packages are currently in use:
 
 ```{r, message=F, warning=F}
 library(raster)
@@ -73,22 +53,12 @@ ALBdf<-occ2df(ALB)
 SWW<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000)
 SWWdf<-occ2df(SWW)
 ```
-
-```{r, results='asis'}
-data %>% 
-  slice(1:10) %>% #show only 1:n rows
-  kable(digits=2,align="c")%>% #make table and round to two digits
-  kable_styling(bootstrap_options = 
-                  c("striped", "hover", "condensed", "responsive")) #apply other formatting
-```
-
-Add any additional processing steps here.
+Spocc downloads data via "occ" and converts to a dataframe via "occ2df".
 
 # Results
+My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed.
 
-Show tables, plots, etc. and describe them.
-
-```{r, fig.width=6, fig.height=3, fig.cap="Map of completely random data"}
+```{r, fig.width=6, fig.height=3}
 
 map<-leaflet()%>%
   addTiles()%>%
@@ -100,13 +70,6 @@ map<-leaflet()%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
 
 
-```
-
-
-```{r}
-data %>% 
-  ggplot(aes(x=x,y=y,col=category))+
-  geom_point()
 ```
 
 # Conclusions
