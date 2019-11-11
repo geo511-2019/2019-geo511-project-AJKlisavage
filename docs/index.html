@@ -628,7 +628,7 @@ b
 <pre class="r"><code>
 
 ##This is what the Leaflet map looks like without the time slider
-leaflet()%>%
+map<-leaflet()%>%
   addTiles()%>%
   addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
   addCircleMarkers(lng=EABdf$longitude, lat=EABdf$latitude, color="blue", popup=EABdf$date, group="Emerald Ash Borer", fillOpacity=0.2, radius=2)%>%
@@ -636,6 +636,8 @@ leaflet()%>%
   addCircleMarkers(lng=ALBdf$longitude, lat=ALBdf$latitude, color="orange", popup=ALBdf$date, group="Asian Long-horned Beetle", fillOpacity=0.2, radius=2)%>%
   addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
+
+map
 
 </code></pre>
 <div class="figure">
