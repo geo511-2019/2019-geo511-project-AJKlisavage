@@ -34,22 +34,44 @@ Here's my first code chunk.
 Load any required packages in a code chunk (you may need to install some packages):
 
 ```{r, message=F, warning=F}
+library(raster)
+library(rasterVis)
+library(shar)
+library(sp)
+library(spData)
 library(tidyverse)
+library(sf)
+library(spocc)
+library(rbison)
+library(maptools)
+library(rgdal)
+library(knitr)
+library(mapview)
 library(leaflet)
-library(kableExtra)
+library(broom)
+library(leaflet.extras)
+library(shiny)
+library(shinydashboard)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 ```
 
 ## Download and clean all required data
 ```{r}
-n=20
-data=data.frame(x=runif(n,-180,180),
-                y=runif(n,-60,60),
-                size = runif(n, 5, 20),
-                category = factor(
-                  sample(letters[1:5], n, replace = TRUE)
-                  ),
-                value = rnorm(n))
+############Calling occurrence data and converting into data frame###########
+SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000,)
+SLFdf<-occ2df(SLF)
+
+EAB<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000)
+EABdf<-occ2df(EAB)
+
+HWA<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000)
+HWAdf<-occ2df(HWA)
+
+ALB<-occ("Anoplophora glabripennis", has_coords=TRUE, limit=1000000)
+ALBdf<-occ2df(ALB)
+
+SWW<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000)
+SWWdf<-occ2df(SWW)
 ```
 
 ```{r, results='asis'}
@@ -67,11 +89,17 @@ Add any additional processing steps here.
 Show tables, plots, etc. and describe them.
 
 ```{r, fig.width=6, fig.height=3, fig.cap="Map of completely random data"}
-m <- leaflet(data) %>% 
-  addTiles() %>% 
-  addCircleMarkers(~x, ~y, radius = ~size,color = ~as.factor(category)) %>% 
-  addPopups(~x[2], ~y[2], "Random popup")
-m  # a map with the default OSM tile layer
+
+map<-leaflet()%>%
+  addTiles()%>%
+  addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=EABdf$longitude, lat=EABdf$latitude, color="blue", popup=EABdf$date, group="Emerald Ash Borer", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=HWAdf$longitude, lat=HWAdf$latitude, color="yellow", popup=HWAdf$date, group="Hemlock Wooly Adelgid", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=ALBdf$longitude, lat=ALBdf$latitude, color="orange", popup=ALBdf$date, group="Asian Long-horned Beetle", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
+  addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
+
+
 ```
 
 
