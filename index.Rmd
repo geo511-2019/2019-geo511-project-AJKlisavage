@@ -1,7 +1,7 @@
 ---
 title: "I have the best titles"
-author: Your name here
-subtitle: Subtitle here if desired
+author: Amanda Klisavage
+subtitle: This change is a test.
 ---
 
 # Introduction
