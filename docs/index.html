@@ -367,9 +367,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">I have the best titles</h1>
-<h3 class="subtitle">Subtitle here if desired</h3>
-<h4 class="author">Your name here</h4>
+<h1 class="title toc-ignore">Invasive Species Tracker</h1>
+<h3 class="subtitle">An interactive tool for understanding __</h3>
+<h4 class="author">Amanda Jacobs-Klisavage</h4>
 
 </div>
 
@@ -400,17 +400,26 @@ div.tocify {
 <p>Load any required packages in a code chunk (you may need to install some packages):</p>
 <pre class="r"><code>library(tidyverse)
 library(leaflet)
-library(kableExtra)
+library(spocc)
 knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling</code></pre>
 <div id="download-and-clean-all-required-data" class="section level2">
 <h2>Download and clean all required data</h2>
-<pre class="r"><code>n=20
-data=data.frame(x=runif(n,-180,180),
-                y=runif(n,-60,60),
-                size = runif(n, 5, 20),
-                category = factor(
-                  sample(letters[1:5], n, replace = TRUE)
-                  ),
+<pre class="r"><code>
+############Calling occurrence data and converting into data frame###########
+SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000,)
+SLFdf<-occ2df(SLF)
+
+EAB<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000)
+EABdf<-occ2df(EAB)
+
+HWA<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000)
+HWAdf<-occ2df(HWA)
+
+ALB<-occ("Anoplophora glabripennis", has_coords=TRUE, limit=1000000)
+ALBdf<-occ2df(ALB)
+
+SWW<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000)
+SWWdf<-occ2df(SWW),
                 value = rnorm(n))</code></pre>
 <pre class="r"><code>data %&gt;% 
   slice(1:10) %&gt;% #show only 1:n rows
@@ -616,10 +625,19 @@ b
 <div id="results" class="section level1">
 <h1>Results</h1>
 <p>Show tables, plots, etc. and describe them.</p>
-<pre class="r"><code>m &lt;- leaflet(data) %&gt;% 
-  addTiles() %&gt;% 
-  addCircleMarkers(~x, ~y, radius = ~size,color=~category)
-m  # a map with the default OSM tile layer</code></pre>
+<pre class="r"><code>
+
+##This is what the Leaflet map looks like without the time slider
+leaflet()%>%
+  addTiles()%>%
+  addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=EABdf$longitude, lat=EABdf$latitude, color="blue", popup=EABdf$date, group="Emerald Ash Borer", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=HWAdf$longitude, lat=HWAdf$latitude, color="yellow", popup=HWAdf$date, group="Hemlock Wooly Adelgid", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=ALBdf$longitude, lat=ALBdf$latitude, color="orange", popup=ALBdf$date, group="Asian Long-horned Beetle", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
+  addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
+
+</code></pre>
 <div class="figure">
 <div id="htmlwidget-6c3e8e4b364322b4c717" style="width:576px;height:288px;" class="leaflet html-widget"></div>
 <script type="application/json" data-for="htmlwidget-6c3e8e4b364322b4c717">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addCircleMarkers","args":[[-14.9990496318787,-14.1425578482449,-47.937785955146,23.2246373500675,12.0140750147402,59.6565782558173,-18.734748121351,-46.5595482755452,48.5311427805573,-59.7428968548775,-45.8097747992724,-17.9679116047919,11.8715448305011,37.8119112364948,-0.509222522377968,47.7842772938311,23.233160879463,-49.0173826832324,36.4987395331264,41.0007195733488],[-175.181908300146,-156.191962519661,20.8724004495889,97.1336986497045,-100.227176304907,121.344821602106,66.3847352284938,-145.814246395603,159.173704627901,-129.102302407846,68.3534577861428,5.6629135273397,115.466055460274,95.05245834589,107.708545736969,171.813281765208,154.443794991821,-43.0141758453101,-143.19836916402,86.8726778123528],[6.99775445973501,5.67242127144709,18.7510148261208,10.4654943244532,5.14062191476114,18.3901090046857,9.35100446688011,11.5656995680183,14.9926926929038,18.9147341717035,19.1231192438863,17.9559715325013,5.70121329394169,9.68357505858876,17.2650242608506,9.21331325662322,7.71976947551593,9.28765372140333,16.8878742691595,13.8479006558191],null,null,{"interactive":true,"className":"","stroke":true,"color":["e","a","a","d","c","e","d","b","b","b","a","e","b","e","e","a","b","c","d","a"],"weight":5,"opacity":0.5,"fill":true,"fillColor":["e","a","a","d","c","e","d","b","b","b","a","e","b","e","e","a","b","c","d","a"],"fillOpacity":0.2},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[-59.7428968548775,59.6565782558173],"lng":[-175.181908300146,171.813281765208]}},"evals":[],"jsHooks":[]}</script>
