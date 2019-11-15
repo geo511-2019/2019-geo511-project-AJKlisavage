@@ -1,15 +1,18 @@
 ---
 title: "Invasive Species Tracker"
 author: Amanda Klisavage
-subtitle: An interactive tool for understanding __.
+subtitle: An interactive tool for understanding the distribution of invasive insects and __ in the United States.
+output: html_document
 ---
 
 # Introduction
-Invasive species are organisms that cause ecological or economic harm in environments in which they are not native. As globalization has spread and the world has grown exponentially smaller, invasive species have become one of the greatest challenges facing environmental managers today. Coupled with constant influx of imported goods is the ever-looming spectre of climate change. Biodiversity loss caused by climate change may leave room in an ecosystem in which the invader has no natural predators, causing species hierarchies to shift, and the invasive species to outcompete native species already vulnerable due to climate induced stress. While there are numerous other factors involved in the spread of invasive species, this map seeks to ask the question: **Is the spread of invasive species correlated with an increase in mean temperature?** This project aims to build an interactive tool that allows users to trace the spread of numerous invasive species in order to further understand the factors that allow invasive species to spread.  
+Invasive species are organisms that cause ecological or economic harm in environments in which they are not native. As globalization has spread and the world has grown exponentially smaller, invasive species have become one of the greatest challenges facing environmental managers today. Coupled with constant influx of imported goods is the ever-looming spectre of climate change. Biodiversity loss caused by climate change may leave room in an ecosystem in which the invader has no natural predators, causing species hierarchies to shift, and the invasive species to outcompete native species already vulnerable due to climate induced stress. While there are numerous other factors involved in the spread of invasive species, this map seeks to ask the question: **Is the spread of invasive species correlated with an increase in mean temperature? Land usage or land cover?** This project aims to build an interactive tool that allows users to trace the spread of numerous invasive species in order to further understand the factors that allow invasive species to spread.  
 
 # Materials and methods
 
-This project pulls species distribution data from R package spocc to create an interactive map in Leaflet and Shiny.
+This project pulls species distribution data from R package [spocc](https://cran.r-project.org/web/packages/spocc/spocc.pdf) to create an interactive map in [Leaflet](https://rstudio.github.io/leaflet/) and [Shiny](https://shiny.rstudio.com/).
+
+# Loading Libraries
 
 Not all of these packages are currently in use:
 
@@ -37,7 +40,8 @@ knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
 
 ## Download and clean all required data
 ```{r}
-############Calling occurrence data and converting into data frame###########
+###Calling occurrence data and converting into df###
+
 SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000,)
 SLFdf<-occ2df(SLF)
 
@@ -58,10 +62,9 @@ Spocc downloads data via "occ" and converts to a dataframe via "occ2df".
 # Results
 My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed.
 
-```{r, fig.width=6, fig.height=3}
-
+```{r}
 map<-leaflet()%>%
-  addTiles()%>%
+  addProviderTiles("Esri.WorldPhysical")%>%
   addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
   addCircleMarkers(lng=EABdf$longitude, lat=EABdf$latitude, color="blue", popup=EABdf$date, group="Emerald Ash Borer", fillOpacity=0.2, radius=2)%>%
   addCircleMarkers(lng=HWAdf$longitude, lat=HWAdf$latitude, color="yellow", popup=HWAdf$date, group="Hemlock Wooly Adelgid", fillOpacity=0.2, radius=2)%>%
@@ -69,8 +72,11 @@ map<-leaflet()%>%
   addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
 
-
+map
 ```
+
+This map will be wrapped into a larger Shiny fluidPage so that occurences can be filtered by date. 
+
 
 # Conclusions
 
