@@ -5,10 +5,10 @@ subtitle: An interactive tool for understanding the distribution of invasive ins
 output: html_document
 ---
 
-# Introduction
+# Introduction 
 Invasive species are organisms that cause ecological or economic harm in environments in which they are not native. As globalization has spread and the world has grown exponentially smaller, invasive species have become one of the greatest challenges facing environmental managers today. Coupled with constant influx of imported goods is the ever-looming spectre of climate change. Biodiversity loss caused by climate change may leave room in an ecosystem in which the invader has no natural predators, causing species hierarchies to shift, and the invasive species to outcompete native species already vulnerable due to climate induced stress. While there are numerous other factors involved in the spread of invasive species, this map seeks to ask the question: **Is the spread of invasive species correlated with an increase in mean temperature? Land usage or land cover?** This project aims to build an interactive tool that allows users to trace the spread of numerous invasive species in order to further understand the factors that allow invasive species to spread.  
 
-# Materials and methods
+# Materials and methods 
 
 This project pulls species distribution data from R package [spocc](https://cran.r-project.org/web/packages/spocc/spocc.pdf) to create an interactive map in [Leaflet](https://rstudio.github.io/leaflet/) and [Shiny](https://shiny.rstudio.com/).
 
@@ -60,7 +60,7 @@ SWWdf<-occ2df(SWW)
 Spocc downloads data via "occ" and converts to a dataframe via "occ2df".
 
 # Results
-My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed.
+My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed. 
 
 ```{r}
 map<-leaflet()%>%
@@ -82,4 +82,4 @@ This map will be wrapped into a larger Shiny fluidPage so that occurences can be
 
 What have you learned?  Are there any broader implications?
 
-# References
+# References 
