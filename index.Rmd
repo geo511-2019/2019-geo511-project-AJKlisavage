@@ -12,7 +12,7 @@ Invasive species are organisms that cause ecological or economic harm in environ
 
 This project pulls species distribution data from R package [spocc](https://cran.r-project.org/web/packages/spocc/spocc.pdf) to create an interactive map in [Leaflet](https://rstudio.github.io/leaflet/) and [Shiny](https://shiny.rstudio.com/).
 
-# Loading Libraries
+## Loading Libraries
 
 Not all of these packages are currently in use:
 
@@ -33,31 +33,85 @@ library(mapview)
 library(leaflet)
 library(broom)
 library(leaflet.extras)
-library(shiny)
-library(shinydashboard)
-knitr::opts_chunk$set(cache=TRUE)  # cache the results for quick compiling
+knitr::opts_chunk$set(cache=TRUE, warning=FALSE, message=FALSE)  # cache the results for quick compiling
 ```
+
+##Creating Bounding Boxes
+Here, two bounding boxes are created, US and non-US, bbox1 and bbox 2, respectively. 
+```{r}
+#####US Bounding box#####
+
+e1<-extent(c(-217.001953,-23.966176,20.478516,73.503461))
+bbox1<-bbox(e1)
+
+#####Not US Bounding Box#####
+e2<-extent(c(xmin=-24.257813,xmax=189.843750,ymin=-47.279229,ymax=74.775843))
+bbox2<-bbox(e2)
+
+```
+
 
 ## Download and clean all required data
+###United States Data
 ```{r}
-###Calling occurrence data and converting into df###
+############Calling US occurrence data and converting into data frame###########
+SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000, geometry=bbox1)
+SLFdf<-occ2df(SLF)%>%
+  mutate(sname="Lycorma delicatula", cname="Spotted Lanternfly")
 
-SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000,)
-SLFdf<-occ2df(SLF)
+EAB<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000, geometry=bbox1)
+EABdf<-occ2df(EAB)%>%
+  mutate(sname="Agrilus planipennis", cname="Emerald Ash Borer")
 
-EAB<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000)
-EABdf<-occ2df(EAB)
+HWA<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000, geometry=bbox1)
+HWAdf<-occ2df(HWA)%>%
+  mutate(sname="Adelges tsugae", cname="Hemlock Wooly Adelgid")
 
-HWA<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000)
-HWAdf<-occ2df(HWA)
+ALB<-occ("Anoplophora glabripennis", has_coords=TRUE, limit=1000000, geometry=bbox1)
+ALBdf<-occ2df(ALB)%>%
+  mutate(sname="Anoplophera glabripennis", cname="Asian Long-horned Beetle")
 
-ALB<-occ("Anoplophora glabripennis", has_coords=TRUE, limit=1000000)
-ALBdf<-occ2df(ALB)
+SWW<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000, geometry=bbox1)
+SWWdf<-occ2df(SWW)%>%
+  mutate(sname="Sirex Noctilio", cname="Sirex Woodwasp")
 
-SWW<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000)
-SWWdf<-occ2df(SWW)
+EFA<-occ("myrmica rubra", has_coords=TRUE, limit=1000000, geometry=bbox1)
+EFAdf<-occ2df(EFA)%>%
+  mutate(sname="Myrmica rubra", cname="European Fireant")
+
 ```
 Spocc downloads data via "occ" and converts to a dataframe via "occ2df".
+
+###non-United States data
+```{r}
+#####Calling non-US occurrences and converting to dataframes#####
+
+SLFn<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000, geometry=bbox2)
+SLFndf<-occ2df(SLFn)%>%
+  mutate(sname="Lycorma delicatula", cname="Spotted Lanternfly", status="Native")
+
+EAB2<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000, geometry=bbox2)
+EAB2df<-occ2df(EAB2)%>%
+  mutate(sname="Agrilus planipennis", cname="Emerald Ash Borer", status="Native")
+
+HWAn<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000, geometry=bbox2)
+HWAndf<-occ2df(HWAn)%>%
+  mutate(sname="Adelges tsugae", cname="Hemlock Wooly Adelgid", status="Native")
+
+ALBn<-occ("Anoplophora glabripennis", has_coords=TRUE, limit=1000000, geometry=bbox2)
+ALBndf<-occ2df(ALBn)%>%
+  mutate(sname="Anoplophera glabripennis", cname="Asian Long-horned Beetle", status="Native")
+
+SWWn<-occ("Sirex noctilio", has_coords=TRUE, limit=1000000, geometry=bbox2)
+SWWndf<-occ2df(SWWn)%>%
+  mutate(sname="Sirex Noctilio", cname="Sirex Woodwasp", status="Native")
+
+EFAn<-occ("myrmica rubra", has_coords=TRUE, limit=1000000, geometry=bbox2)
+EFAndf<-occ2df(EFAn)%>%
+  mutate(sname="Myrmica rubra", cname="European Fireant", status="Native")
+
+```
+
 
 # Results
 My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed.
