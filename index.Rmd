@@ -266,7 +266,7 @@ copy copy copy
 
 
 ## Leaflet 
-```{r leaflet}
+```{r mapleaflet, echo=FALSE}
 map<-leaflet()%>%
   addProviderTiles("Esri.WorldPhysical")%>%
   addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
@@ -276,6 +276,12 @@ map<-leaflet()%>%
   addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
 
+map
+
+
+```
+
+```{r nmap, echo=FALSE}
 nmap<-leaflet()%>%
   addProviderTiles("Esri.WorldPhysical")%>%
   addCircleMarkers(lng=SLFndf$longitude, lat=SLFndf$latitude, color="green", popup=SLFndf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
@@ -285,7 +291,9 @@ nmap<-leaflet()%>%
   addCircleMarkers(lng=SWWndf$longitude, lat=SWWndf$latitude, color="red", popup=SWWndf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
 
+nmap
 ```
+
 
 ## Plotting Environmental Space
 ```{r plots}
