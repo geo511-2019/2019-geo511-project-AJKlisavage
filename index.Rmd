@@ -3,6 +3,7 @@ title: "Invasive Species Tracker"
 author: Amanda Klisavage
 subtitle: An interactive tool for understanding the distribution of invasive insects and __ in the United States.
 output: html_document
+code_folding: hide
 ---
 
 # Introduction
@@ -25,7 +26,7 @@ library(spData)
 library(tidyverse)
 library(sf)
 library(spocc)
-library(rbison)
+library(dplyr)
 library(maptools)
 library(rgdal)
 library(knitr)
@@ -36,9 +37,9 @@ library(leaflet.extras)
 knitr::opts_chunk$set(cache=TRUE, warning=FALSE, message=FALSE)  # cache the results for quick compiling
 ```
 
-##Creating Bounding Boxes
+## Creating Bounding Boxes
 Here, two bounding boxes are created, US and non-US, bbox1 and bbox 2, respectively. 
-```{r}
+```{r bboxes}
 #####US Bounding box#####
 
 e1<-extent(c(-217.001953,-23.966176,20.478516,73.503461))
@@ -51,9 +52,9 @@ bbox2<-bbox(e2)
 ```
 
 
-## Download and clean all required data
-###United States Data
-```{r}
+## Downloading occurrence data
+### United States Data
+```{r usocc}
 ############Calling US occurrence data and converting into data frame###########
 SLF<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000, geometry=bbox1)
 SLFdf<-occ2df(SLF)%>%
@@ -82,16 +83,16 @@ EFAdf<-occ2df(EFA)%>%
 ```
 Spocc downloads data via "occ" and converts to a dataframe via "occ2df".
 
-###non-United States data
-```{r}
+### non-United States data
+```{r nusocc}
 #####Calling non-US occurrences and converting to dataframes#####
 
 SLFn<-occ("Lycorma delicatula", has_coords=TRUE, limit=1000000, geometry=bbox2)
 SLFndf<-occ2df(SLFn)%>%
   mutate(sname="Lycorma delicatula", cname="Spotted Lanternfly", status="Native")
 
-EAB2<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000, geometry=bbox2)
-EAB2df<-occ2df(EAB2)%>%
+EABn<-occ("Agrilus planipennis", has_coords=TRUE, limit=1000000, geometry=bbox2)
+EABndf<-occ2df(EABn)%>%
   mutate(sname="Agrilus planipennis", cname="Emerald Ash Borer", status="Native")
 
 HWAn<-occ("Adelges tsugae", has_coords=TRUE, limit=1000000, geometry=bbox2)
@@ -112,11 +113,160 @@ EFAndf<-occ2df(EFAn)%>%
 
 ```
 
+## Downloading Climate Data
+```{r climate}
+precip <- getData(name = "worldclim", var="prec", res=5)
+gain(precip)=0.1
+prec_annual<-max(precip)
+names(prec_annual) <- "pmax"
+
+tmax_monthly <- getData(name = "worldclim", var="tmax", res=5)
+gain(tmax_monthly)=0.1
+tmax_annual<-max(tmax_monthly)
+names(tmax_annual) <- "tmax"
+```
+
+
+
+## Preparing occurrence data for climate data extraction
+#### Emerald Ash Borer, *Agrilus planipennis*
+```{r envspdata}
+#####Extracting Environmental Space per Species#####
+
+#Emerald Ash Borer
+EABsp<-SpatialPoints(cbind(EABdf$longitude, EABdf$latitude))
+EABprec<-raster::extract(prec_annual, EABsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+EABtmax<-raster::extract(tmax_annual, EABsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+EABUSclim<-st_join(EABprec, EABtmax)%>%
+  mutate(status="Invasive")
+
+EABnsp<-SpatialPoints(cbind(EABndf$longitude, EABndf$latitude))
+EABntmax<-raster::extract(tmax_annual, EABnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+EABnprec<-raster::extract(prec_annual, EABnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+EABnUSclim<-st_join(EABnprec,EABntmax)%>%
+  mutate(status="Native")
+
+EABmaster<-rbind(EABnUSclim, EABUSclim)
+
+```
+
+#### Spotted Lanternfly, *Lycorma delicutula*
+```{r SLFsp}
+SLFsp<-SpatialPoints(cbind(SLFdf$longitude, SLFdf$latitude))
+SLFprec<-raster::extract(prec_annual, SLFsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SLFtmax<-raster::extract(tmax_annual, SLFsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SLFUSclim<-st_join(SLFprec, SLFtmax)%>%
+  mutate(status="Invasive")
+
+SLFnsp<-SpatialPoints(cbind(SLFndf$longitude, SLFndf$latitude))
+SLFntmax<-raster::extract(tmax_annual, SLFnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+SLFnprec<-raster::extract(prec_annual, SLFnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SLFnUSclim<-st_join(SLFnprec,SLFntmax)%>%
+  mutate(status="Native")
+
+SLFmaster<-rbind(SLFnUSclim, SLFUSclim)
+```
+
+#### Hemlock Woolly Adelgid, *Adelges tsugae*
+
+
+```{r HWAsp}
+HWAsp<-SpatialPoints(cbind(HWAdf$longitude, HWAdf$latitude))
+HWAprec<-raster::extract(prec_annual, HWAsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+HWAtmax<-raster::extract(tmax_annual, HWAsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+HWAUSclim<-st_join(HWAprec, HWAtmax)%>%
+  mutate(status="Invasive")
+
+HWAnsp<-SpatialPoints(cbind(HWAndf$longitude, HWAndf$latitude))
+HWAntmax<-raster::extract(tmax_annual, HWAnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+HWAnprec<-raster::extract(prec_annual, HWAnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+HWAnUSclim<-st_join(HWAnprec,HWAntmax)%>%
+  mutate(status="Native")
+
+HWAmaster<-rbind(HWAnUSclim, HWAUSclim)
+```
+
+
+
+#### Asian Long-horned Beetle, *Anoplophora glabripennis*
+
+```{r ALBsp}
+ALBsp<-SpatialPoints(cbind(ALBdf$longitude, ALBdf$latitude))
+ALBprec<-raster::extract(prec_annual, ALBsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+ALBtmax<-raster::extract(tmax_annual, ALBsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+ALBUSclim<-st_join(ALBprec, ALBtmax)%>%
+  mutate(status="Invasive")
+
+ALBnsp<-SpatialPoints(cbind(ALBndf$longitude, ALBndf$latitude))
+ALBntmax<-raster::extract(tmax_annual, ALBnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+ALBnprec<-raster::extract(prec_annual, ALBnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+ALBnUSclim<-st_join(ALBnprec,ALBntmax)%>%
+  mutate(status="Native")
+
+ALBmaster<-rbind(ALBnUSclim, ALBUSclim)
+```
+
+
+#### Sirex Woodwasp, *Sirex noctilio*
+```{r SWWsp}
+SWWsp<-SpatialPoints(cbind(SWWdf$longitude, SWWdf$latitude))
+SWWprec<-raster::extract(prec_annual, SWWsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SWWtmax<-raster::extract(tmax_annual, SWWsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SWWUSclim<-st_join(SWWprec, SWWtmax)%>%
+  mutate(status="Invasive")
+
+SWWnsp<-SpatialPoints(cbind(SWWndf$longitude, SWWndf$latitude))
+SWWntmax<-raster::extract(tmax_annual, SWWnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+SWWnprec<-raster::extract(prec_annual, SWWnsp, fun=max, na.rm=TRUE, small=TRUE, sp=TRUE)%>%
+  st_as_sf()
+
+SWWnUSclim<-st_join(SWWnprec,SWWntmax)%>%
+  mutate(status="Native")
+
+SWWmaster<-rbind(SWWnUSclim, SWWUSclim)
+```
+
+
 
 # Results
-My figures are not currently displayed, a placeholder image is below. The final project will have a slider built in Shiny that allows the user to control the timeframe of the data displayed.
+copy copy copy
 
-```{r}
+
+## Leaflet 
+```{r leaflet}
 map<-leaflet()%>%
   addProviderTiles("Esri.WorldPhysical")%>%
   addCircleMarkers(lng=SLFdf$longitude, lat=SLFdf$latitude, color="green", popup=SLFdf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
@@ -126,11 +276,51 @@ map<-leaflet()%>%
   addCircleMarkers(lng=SWWdf$longitude, lat=SWWdf$latitude, color="red", popup=SWWdf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
   addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
 
-map
+nmap<-leaflet()%>%
+  addProviderTiles("Esri.WorldPhysical")%>%
+  addCircleMarkers(lng=SLFndf$longitude, lat=SLFndf$latitude, color="green", popup=SLFndf$date, group="Spotted Lanternfly", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=EABndf$longitude, lat=EABndf$latitude, color="blue", popup=EABndf$date, group="Emerald Ash Borer", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=HWAndf$longitude, lat=HWAndf$latitude, color="yellow", popup=HWAndf$date, group="Hemlock Wooly Adelgid", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=ALBndf$longitude, lat=ALBndf$latitude, color="orange", popup=ALBndf$date, group="Asian Long-horned Beetle", fillOpacity=0.2, radius=2)%>%
+  addCircleMarkers(lng=SWWndf$longitude, lat=SWWndf$latitude, color="red", popup=SWWndf$date, group="Sirex Woodwasp", fillOpacity=0.2, radius=2)%>%
+  addLayersControl(overlayGroups = c("Spotted Lanternfly", "Emerald Ash Borer", "Hemlock Wooly Adelgid", "Asian Long-horned Beetle", "Sirex Woodwasp"))
+
 ```
 
-This map will be wrapped into a larger Shiny fluidPage so that occurences can be filtered by date. 
+## Plotting Environmental Space
+```{r plots}
 
+ggplot(data=SLFmaster, aes(x=tmax, y=pmax))+
+  geom_jitter(aes(fill=status, color=status, alpha=0.05))+
+  ggtitle("Spotted Lanternfly")+
+  ylab("Annual Precipitation, mm")+
+  xlab("Maximum Annual Temperature, °C")
+
+ggplot(data=HWAmaster, aes(x=tmax, y=pmax))+
+  geom_jitter(aes(fill=status, color=status, alpha=0.05))+
+  ggtitle("Hemlock Wooly Adelgid")+
+  ylab("Annual Precipitation, mm")+
+  xlab("Maximum Annual Temperature, °C")
+
+ggplot(data=ALBmaster, aes(x=tmax, y=pmax))+
+  geom_jitter(aes(fill=status, color=status, alpha=0.05))+
+  ggtitle("Asian Long-horned Beetle")+
+  ylab("Annual Precipitation, mm")+
+  xlab("Maximum Annual Temperature, °C")
+
+ggplot(data=SWWmaster, aes(x=tmax, y=pmax))+
+  geom_jitter(aes(fill=status, color=status, alpha=0.05))+
+  ggtitle("Sirex Woodwasp")+
+  ylab("Annual Precipitation, mm")+
+  xlab("Maximum Annual Temperature, °C")
+
+ggplot(data=EABmaster, aes(x=tmax, y=pmax))+
+  geom_jitter(aes(fill=status, color=status, alpha=0.05))+
+  ggtitle("Emerald Ash Borer")+
+  ylab("Annual Precipitation, mm")+
+  xlab("Maximum Annual Temperature, °C")
+  
+```
 
 # Conclusions
 
